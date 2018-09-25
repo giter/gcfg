@@ -31,8 +31,6 @@ func newTag(ts string) tag {
 		switch {
 		case strings.HasPrefix(tse, "int="):
 			t.intMode = tse[len("int="):]
-		case strings.HasPrefix(tse, "default="):
-			t.defaultValue = tse[len("default="):]
 		default:
 			if t.ident == "" {
 				t.ident = tse
@@ -180,11 +178,14 @@ var typeSetters = map[reflect.Type]setter{
 }
 
 func typeSetter(d interface{}, blank bool, val string, tt tag) error {
+
 	t := reflect.ValueOf(d).Type().Elem()
 	setter, ok := typeSetters[t]
+
 	if !ok {
 		return errUnsupportedType
 	}
+
 	return setter(d, blank, val, tt)
 }
 
@@ -197,18 +198,15 @@ func kindSetter(d interface{}, blank bool, val string, tt tag) error {
 		return errUnsupportedType
 	}
 
-	if blank && tt.defaultValue != "" {
-		blank = false
-		val = tt.defaultValue
-	}
-
 	return setter(d, blank, val, tt)
 }
 
 func scanSetter(d interface{}, blank bool, val string, tt tag) error {
+
 	if blank {
 		return errBlankUnsupported
 	}
+
 	return types.ScanFully(d, val, 'v')
 }
 
@@ -235,6 +233,7 @@ func newValue(c *warnings.Collector, sect string, vCfg reflect.Value,
 
 func set(c *warnings.Collector, cfg interface{}, sect, sub, name string,
 	blank bool, value string, subsectPass bool) error {
+
 	//
 	vPCfg := reflect.ValueOf(cfg)
 	if vPCfg.Kind() != reflect.Ptr || vPCfg.Elem().Kind() != reflect.Struct {
@@ -285,8 +284,10 @@ func set(c *warnings.Collector, cfg interface{}, sect, sub, name string,
 	if name == "" {
 		return nil
 	}
+
 	vVar, t := fieldFold(vSect, name)
 	l.variable = &name
+
 	if !vVar.IsValid() {
 		return c.Collect(extraData{loc: l})
 	}
@@ -322,14 +323,19 @@ func set(c *warnings.Collector, cfg interface{}, sect, sub, name string,
 	default:
 		vAddr = vVal.Addr()
 	}
+
 	vAddrI := vAddr.Interface()
 	err, ok := error(nil), false
+
 	for _, s := range setters {
+
 		err = s(vAddrI, blank, value, t)
+
 		if err == nil {
 			ok = true
 			break
 		}
+
 		if err != errUnsupportedType {
 			return locErr{msg: err.Error(), loc: l}
 		}

@@ -8,6 +8,8 @@ import (
 	"os"
 	"strings"
 
+	"gopkg.in/mcuadros/go-defaults.v1"
+
 	"github.com/giter/gcfg/scanner"
 	"github.com/giter/gcfg/token"
 	warnings "gopkg.in/warnings.v0"
@@ -52,21 +54,27 @@ func unquote(s string) string {
 
 func readIntoPass(c *warnings.Collector, config interface{}, fset *token.FileSet,
 	file *token.File, src []byte, subsectPass bool) error {
-	//
+
 	var s scanner.Scanner
 	var errs scanner.ErrorList
+
 	s.Init(file, src, func(p token.Position, m string) { errs.Add(p, m) }, 0)
+
 	sect, sectsub := "", ""
 	pos, tok, lit := s.Scan()
+
 	errfn := func(msg string) error {
 		return fmt.Errorf("%s: %s", fset.Position(pos), msg)
 	}
+
 	for {
+
 		if errs.Len() > 0 {
 			if err := c.Collect(errs.Err()); err != nil {
 				return err
 			}
 		}
+
 		switch tok {
 		case token.EOF:
 			return nil
@@ -192,23 +200,32 @@ func readInto(config interface{}, fset *token.FileSet, file *token.File,
 	//
 	c := warnings.NewCollector(isFatal)
 	err := readIntoPass(c, config, fset, file, src, false)
+
 	if err != nil {
 		return err
 	}
+
 	err = readIntoPass(c, config, fset, file, src, true)
+
 	if err != nil {
 		return err
 	}
+
+	defaultValues(config)
+
 	return c.Done()
 }
 
 // ReadInto reads gcfg formatted data from reader and sets the values into the
 // corresponding fields in config.
 func ReadInto(config interface{}, reader io.Reader) error {
+
 	src, err := ioutil.ReadAll(reader)
+
 	if err != nil {
 		return err
 	}
+
 	fset := token.NewFileSet()
 	file := fset.AddFile("", fset.Base(), len(src))
 	return readInto(config, fset, file, src)
@@ -254,4 +271,8 @@ func skipLeadingUtf8Bom(src []byte) []byte {
 		}
 	}
 	return src
+}
+
+func defaultValues(config interface{}) {
+	defaults.SetDefaults(config)
 }
