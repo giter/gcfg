@@ -8,9 +8,9 @@ import (
 	"os"
 	"strings"
 
-	"gopkg.in/gcfg.v1/scanner"
-	"gopkg.in/gcfg.v1/token"
-	"gopkg.in/warnings.v0"
+	"github.com/giter/gcfg/scanner"
+	"github.com/giter/gcfg/token"
+	warnings "gopkg.in/warnings.v0"
 )
 
 var unescape = map[rune]rune{'\\': '\\', '"': '"', 'n': '\n', 't': '\t'}

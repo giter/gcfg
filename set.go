@@ -11,24 +11,35 @@ import (
 	"unicode"
 	"unicode/utf8"
 
-	"gopkg.in/gcfg.v1/types"
-	"gopkg.in/warnings.v0"
+	"github.com/giter/gcfg/types"
+	warnings "gopkg.in/warnings.v0"
 )
 
 type tag struct {
-	ident   string
-	intMode string
+	ident        string
+	intMode      string
+	defaultValue string
 }
 
 func newTag(ts string) tag {
+
 	t := tag{}
-	s := strings.Split(ts, ",")
-	t.ident = s[0]
-	for _, tse := range s[1:] {
-		if strings.HasPrefix(tse, "int=") {
+
+	for _, tse := range strings.Split(ts, ",") {
+
+		tse = strings.TrimSpace(tse)
+		switch {
+		case strings.HasPrefix(tse, "int="):
 			t.intMode = tse[len("int="):]
+		case strings.HasPrefix(tse, "default="):
+			t.defaultValue = tse[len("default="):]
+		default:
+			if t.ident == "" {
+				t.ident = tse
+			}
 		}
 	}
+
 	return t
 }
 
@@ -178,11 +189,19 @@ func typeSetter(d interface{}, blank bool, val string, tt tag) error {
 }
 
 func kindSetter(d interface{}, blank bool, val string, tt tag) error {
+
 	k := reflect.ValueOf(d).Type().Elem().Kind()
 	setter, ok := kindSetters[k]
+
 	if !ok {
 		return errUnsupportedType
 	}
+
+	if blank && tt.defaultValue != "" {
+		blank = false
+		val = tt.defaultValue
+	}
+
 	return setter(d, blank, val, tt)
 }
 
