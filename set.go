@@ -16,9 +16,8 @@ import (
 )
 
 type tag struct {
-	ident        string
-	intMode      string
-	defaultValue string
+	ident   string
+	intMode string
 }
 
 func newTag(ts string) tag {
