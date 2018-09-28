@@ -8,8 +8,6 @@ import (
 	"os"
 	"strings"
 
-	"gopkg.in/mcuadros/go-defaults.v1"
-
 	"github.com/giter/gcfg/scanner"
 	"github.com/giter/gcfg/token"
 	warnings "gopkg.in/warnings.v0"
@@ -211,8 +209,6 @@ func readInto(config interface{}, fset *token.FileSet, file *token.File,
 		return err
 	}
 
-	defaultValues(config)
-
 	return c.Done()
 }
 
@@ -271,8 +267,4 @@ func skipLeadingUtf8Bom(src []byte) []byte {
 		}
 	}
 	return src
-}
-
-func defaultValues(config interface{}) {
-	defaults.SetDefaults(config)
 }
